@@ -1,0 +1,8 @@
+# get all subjects
+curl -s -H "accept: application/vnd.schemaregistry.v1+json" http://localhost:8081/subjects | jq .
+
+# get latest schema of a subject (equals to topic by default)
+curl -s -H "accept: application/vnd.schemaregistry.v1+json" http://localhost:8081/subjects/consoles-value/versions/latest | jq .
+
+# delete schema version (useful in extreme cases)
+curl -X DELETE -H "accept: application/vnd.schemaregistry.v1+json" http://localhost:8081/subjects/consoles-value/versions/1 | jq .

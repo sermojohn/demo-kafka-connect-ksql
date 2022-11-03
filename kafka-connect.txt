@@ -1,0 +1,41 @@
+# JDBC connector
+https://www.confluent.io/blog/kafka-connect-deep-dive-jdbc-source-connector/
+
+curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json" -d '{
+        "name": "jdbc_source_postgres_01",
+        "config": {
+                "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
+                "connection.url": "jdbc:postgresql://postgres:5432/postgres",
+                "connection.user": "postgres",
+                "connection.password": "postgres",
+                "topic.prefix": "",
+                "mode":"timestamp",
+                "poll.interval.ms" : 1000,
+                "catalog.pattern" : "public",
+                "table.whitelist" : "consoles",
+                "timestamp.column.name": "timestamp",
+                "validate.non.null": false
+                }
+        }'
+curl -X GET http://localhost:8083/connectors
+curl -X DELETE http://localhost:8083/connectors/jdbc_source_postgres_01
+
+# issue with JDBC connector and deletions
+https://stackoverflow.com/questions/45044641/delete-events-from-jdbc-kafka-connect-source
+
+
+curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json" -d '{
+        "name": "jdbc_sink_postgres_01",
+        "config": {
+                "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+                "connection.url": "jdbc:postgresql://postgres:5432/postgres",
+                "connection.user": "postgres",
+                "connection.password": "postgres",
+                "insert.mode": "upsert",
+                "pk.fields": "id",
+                "pk.mode": "record_value",
+                "table.name.format": "copy_${topic}",
+                "topics": "consoles"
+                }
+        }'
+curl -X DELETE http://localhost:8083/connectors/jdbc_sink_postgres_01
