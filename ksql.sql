@@ -1,1 +1,16 @@
-print 'postgres-01-consoles';
+print consoles_with_softdeletion from beginning;
+
+CREATE STREAM CONSOLES_SRC (ROWKEY STRING KEY, NAME STRING, DEL_TIMESTAMP bigint) 
+WITH (KAFKA_TOPIC='consoles_with_softdeletion', VALUE_FORMAT='AVRO');
+
+CREATE STREAM CONSOLES_NOT_DELETED
+WITH (KAFKA_TOPIC='consoles_aggregated', VALUE_FORMAT='AVRO') AS
+SELECT ROWKEY, name FROM CONSOLES_SRC
+WHERE del_timestamp IS NULL;
+
+CREATE STREAM CONSOLES_DELETED
+WITH (KAFKA_TOPIC='consoles_aggregated', VALUE_FORMAT='AVRO') AS
+SELECT ROWKEY, CAST(NULL AS VARCHAR) FROM CONSOLES_SRC
+WHERE del_timestamp != 0;
+
+

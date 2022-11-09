@@ -1,6 +1,9 @@
 # JDBC connector
 https://www.confluent.io/blog/kafka-connect-deep-dive-jdbc-source-connector/
 
+curl -X GET http://localhost:8083/connectors
+
+curl -X DELETE http://localhost:8083/connectors/jdbc_source_postgres_01
 curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json" -d '{
         "name": "jdbc_source_postgres_01",
         "config": {
@@ -22,33 +25,14 @@ curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json
                 "transforms.extractKeyFromStruct.field":"id"
                 }
         }'
-curl -X PUT http://localhost:8083/connectors/jdbc_source_postgres_01/config -H "Content-Type: application/json" -d '{
-        "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
-        "connection.url": "jdbc:postgresql://postgres:5432/postgres",
-        "connection.user": "postgres",
-        "connection.password": "postgres",
-        "topic.prefix": "consoles_with_softdeletion",
-        "mode":"timestamp",
-        "poll.interval.ms" : 1000,
-        "catalog.pattern" : "public",
-        "timestamp.column.name": "del_timestamp,timestamp",
-        "validate.non.null": false,
-        "query": "select * from (select id,name,timestamp,del_timestamp from consoles_with_softdeletion where ignore=false) as foo",
-        "transforms":"copyFieldToKey,extractKeyFromStruct",
-        "transforms.copyFieldToKey.type":"org.apache.kafka.connect.transforms.ValueToKey",
-        "transforms.copyFieldToKey.fields":"id",
-        "transforms.extractKeyFromStruct.type":"org.apache.kafka.connect.transforms.ExtractField$Key",
-        "transforms.extractKeyFromStruct.field":"id"
-}'
 curl -X GET http://localhost:8083/connectors
-curl -X DELETE http://localhost:8083/connectors/jdbc_source_postgres_01
 curl -s -X POST "http://localhost:8083/connectors/jdbc_source_postgres_01/tasks/0/restart"
 curl -X GET http://localhost:8083/connectors/jdbc_source_postgres_01/status | jq .
 
 # issue with JDBC connector and deletions
 https://stackoverflow.com/questions/45044641/delete-events-from-jdbc-kafka-connect-source
 
-
+curl -X DELETE http://localhost:8083/connectors/jdbc_sink_postgres_01
 curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json" -d '{
         "name": "jdbc_sink_postgres_01",
         "config": {
@@ -56,25 +40,11 @@ curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json
                 "connection.url": "jdbc:postgresql://postgres:5432/postgres",
                 "connection.user": "postgres",
                 "connection.password": "postgres",
-                "insert.mode": "upsert",
+                "insert.mode": "insert",
+                "pk.mode": "record_key",
                 "pk.fields": "id",
-                "pk.mode": "record_value",
-                "table.name.format": "copy_${topic}",
-                "topics": "consoles,consoles_with_softdeletion"
+                "table.name.format": "copy_consoles_with_softdeletion",
+                "topics": "consoles_aggregated",
                 }
         }'
-
-curl -X PUT http://localhost:8083/connectors/jdbc_sink_postgres_01/config -H "Content-Type: application/json" -d '{
-        "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
-        "connection.url": "jdbc:postgresql://postgres:5432/postgres",
-        "connection.user": "postgres",
-        "connection.password": "postgres",
-        "insert.mode": "upsert",
-        "pk.fields": "id",
-        "pk.mode": "record_value",
-        "table.name.format": "copy_${topic}",
-        "topics": "consoles,consoles_with_softdeletion"
-}'
-curl -X DELETE http://localhost:8083/connectors/jdbc_sink_postgres_01
-
 curl -s -X POST "http://localhost:8083/connectors/jdbc_sink_postgres_01/tasks/0/restart"

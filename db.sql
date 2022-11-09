@@ -12,7 +12,8 @@ alter table consoles_with_softdeletion drop column ignore;
 create table copy_consoles(id integer PRIMARY KEY, name varchar(255), timestamp TIMESTAMPTZ);
 create table copy_consoles_with_softdeletion(id integer PRIMARY KEY, name varchar(255), timestamp TIMESTAMPTZ, del_timestamp TIMESTAMPTZ);
 alter table copy_consoles_with_softdeletion add column ignore boolean default false;
-
+drop table copy_consoles_with_softdeletion;
+create table copy_consoles_with_softdeletion(id integer PRIMARY KEY, name varchar(255));
 
 
 -- sample data
