@@ -2,7 +2,7 @@
 curl -s -H "accept: application/vnd.schemaregistry.v1+json" http://localhost:8081/subjects | jq .
 
 # get latest schema of a subject (equals to topic by default)
-curl -s -H "accept: application/vnd.schemaregistry.v1+json" http://localhost:8081/subjects/consoles-value/versions/latest | jq .
+curl -s -H "accept: application/vnd.schemaregistry.v1+json" http://localhost:8081/subjects/consoles_with_softdeletion-value/versions/ | jq .
 
 # delete schema version (useful in extreme cases)
-curl -X DELETE -H "accept: application/vnd.schemaregistry.v1+json" http://localhost:8081/subjects/consoles-value/versions/1 | jq .
+curl -X DELETE -H "accept: application/vnd.schemaregistry.v1+json" http://localhost:8081/subjects/consoles_with_softdeletion-value/versions/1 | jq .
